@@ -2,6 +2,7 @@
 "use strict";
 const RuleHelper = require("textlint-rule-helper").RuleHelper;
 const japaneseRegExp = /(?:[々〇〻\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]|[\uD840-\uD87F][\uDC00-\uDFFF]|[ぁ-んァ-ヶ])/;
+const chineseRegExp = /(?:[\u4e00-\u9fa5])/;
 /***
  * 典型的な句点のパターン
  * これは`periodMark`と交換しても違和感がないものを登録
@@ -70,7 +71,12 @@ const reporter = (context, options = {}) => {
                 return;
             }
             // 日本語が含まれていない文章は無視する
-            if (!japaneseRegExp.test(lastStrText)) {
+            // if (!japaneseRegExp.test(lastStrText)) {
+            //     return;
+            // }
+
+            // 不含中文文本无视
+            if (!chineseRegExp.test(lastStrText)) {
                 return;
             }
             const { valid, periodMark, index } = checkEndsWithPeriod(lastStrText, {
@@ -85,7 +91,7 @@ const reporter = (context, options = {}) => {
             if (/\s/.test(periodMark)) {
                 report(
                     lastNode,
-                    new RuleError(`文末が"${preferPeriodMark}"で終わっていません。末尾に不要なスペースがあります。`, {
+                    new RuleError(`文本末尾未以"${preferPeriodMark}"终结。文本末尾不要有多余的空格。`, {
                         index,
                         fix: fixer.replaceTextRange([index, index + periodMark.length], "")
                     })
@@ -97,7 +103,7 @@ const reporter = (context, options = {}) => {
             if (classicPeriodMarkPattern.test(periodMark)) {
                 report(
                     lastNode,
-                    new RuleError(`文末が"${preferPeriodMark}"で終わっていません。`, {
+                    new RuleError(`文本末尾未以"${preferPeriodMark}"终结。`, {
                         index: index,
                         fix: fixer.replaceTextRange([index, index + preferPeriodMark.length], preferPeriodMark)
                     })
@@ -108,7 +114,7 @@ const reporter = (context, options = {}) => {
                     // `forceAppendPeriod`のオプションがtrueならば、自動で句点を追加する。
                     report(
                         lastNode,
-                        new RuleError(`文末が"${preferPeriodMark}"で終わっていません。`, {
+                        new RuleError(`文本末尾未以"${preferPeriodMark}"终结。`, {
                             index: index,
                             fix: fixer.replaceTextRange([index + 1, index + 1], preferPeriodMark)
                         })
@@ -116,7 +122,7 @@ const reporter = (context, options = {}) => {
                 } else {
                     report(
                         lastNode,
-                        new RuleError(`文末が"${preferPeriodMark}"で終わっていません。`, {
+                        new RuleError(`文本末尾未以"${preferPeriodMark}"终结。`, {
                             index: index
                         })
                     );
